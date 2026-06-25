@@ -111,17 +111,11 @@ MIT
 ---
 
 <br>
-
 <div dir="rtl" lang="fa">
-
 <h1>دنگ حساب سفر</h1>
-
 <blockquote>یک PWA کاملاً آفلاین که هزینه‌های مشترک سفر را بین <strong>خانواده‌ها</strong> تقسیم کرده و تسویه نهایی را نمایش می‌دهد.</blockquote>
-
 <hr>
-
 <h2>قابلیت‌ها</h2>
-
 <ul>
 <li><strong>مدیریت چند سفر</strong> — ایجاد، بایگانی و جابجایی بین سفرها</li>
 <li><strong>تعریف خانواده و نفرات</strong> — تعریف خانواده‌ها با رنگ اختصاصی</li>
@@ -139,9 +133,7 @@ MIT
 <li><strong>نسخه قابل چاپ تسویه</strong> — مشاهده و چاپ تسویه نهایی</li>
 <li><strong>جستجو و فیلتر</strong> — پیدا کردن هزینه‌ها بر اساس عنوان یا دسته</li>
 </ul>
-
 <h2>تکنولوژی</h2>
-
 <ul>
 <li><strong>HTML5 + CSS3 + JavaScript (ES2022, ES Modules)</strong> — بدون فریمورک و بدون build step</li>
 <li><strong>فونت وزیرمتن</strong> — میزبانی شده در پروژه، بدون نیاز به CDN</li>
@@ -150,28 +142,19 @@ MIT
 <li><strong>Service Worker</strong> — استراتژی آفلاین cache-first</li>
 <li><strong>۴۵ تست واحد</strong> با <code>node:test</code></li>
 </ul>
-
 <h2>شروع کار</h2>
-
 <p>برنامه یک سایت استاتیک است و نیازی به build ندارد:</p>
-
 <pre><code>npm test
 python -m http.server 8080
 npx serve .
 </code></pre>
-
 <p>مرورگر را در <code>http://localhost:8080</code> باز کنید.</p>
 <p>برای تجربه کامل PWA، از HTTPS استفاده کنید (GitHub Pages، Vercel، یا localhost).</p>
-
 <h3>توسعه</h3>
-
 <pre><code>npm test
 </code></pre>
-
 <p>تست‌ها با <code>node:test</code> اجرا می‌شوند — بدون نیاز به فریمورک خارجی.</p>
-
 <h2>ساختار پروژه</h2>
-
 <pre><code>├── index.html                   # پوسته اصلی + آیکون‌های SVG
 ├── manifest.webmanifest          # مانیفست PWA
 ├── service-worker.js             # سرویس ورکر آفلاین
@@ -203,9 +186,7 @@ npx serve .
     ├── storage.test.js
     └── utils.test.js
 </code></pre>
-
 <h2>مدل داده</h2>
-
 <ul>
 <li><strong>سفر (Trip)</strong> — کانتینر اصلی با تقویم، ارز، خانواده‌ها و هزینه‌ها</li>
 <li><strong>خانواده (Family)</strong> — گروهی از افراد با رنگ اختصاصی</li>
@@ -213,11 +194,7 @@ npx serve .
 <li><strong>هزینه (Expense)</strong> — آیتم هزینه با شرکت‌کنندگان، مالیات، خرج‌ها و وزن سهم</li>
 <li><strong>خرج (Charge)</strong> — خط پرداخت مجزا (مبلغ + پرداخت‌کننده)</li>
 </ul>
-
 <p>همه مبالغ به صورت اعداد صحیح در واحد جزء ذخیره می‌شوند (تومان کامل / سنت برای دلار و یورو).</p>
-
 <h2>مجوز</h2>
-
 <p>MIT</p>
-
 </div>
