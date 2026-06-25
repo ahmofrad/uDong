@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Dong Trip Splitter</title>
+  <rect width="512" height="512" rx="112" fill="#fff8ed"/>
+  <circle cx="256" cy="256" r="180" fill="#f59e0b"/>
+  <path fill="#0f766e" d="M145 300c42 53 181 53 223 0 14-18-10-39-26-23-44 42-128 42-172 0-16-16-39 5-25 23Z"/>
+  <path fill="#111827" d="M162 186h188c28 0 50 22 50 50v25H112v-25c0-28 22-50 50-50Z"/>
+  <path fill="#fff8ed" d="M176 225h160v29H176z"/>
+</svg>
+
