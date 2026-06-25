@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-pwa-v1';
+const CACHE_NAME = 'dong-pwa-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
