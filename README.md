@@ -135,11 +135,11 @@ MIT
 </ul>
 <h2>تکنولوژی</h2>
 <ul>
-<li><strong>HTML5 + CSS3 + JavaScript (ES2022, ES Modules)</strong> — بدون فریمورک و بدون build step</li>
+<li>‏<strong>HTML5 + CSS3 + JavaScript (ES2022, ES Modules)</strong> — بدون فریمورک و بدون build step</li>
 <li><strong>فونت وزیرمتن</strong> — میزبانی شده در پروژه، بدون نیاز به CDN</li>
 <li><strong>آیکون‌های SVG درون‌ساختی</strong> — bundled در index.html</li>
-<li><strong>localStorage</strong> برای داده سفرها + <strong>Cookies</strong> برای تنظیمات</li>
-<li><strong>Service Worker</strong> — استراتژی آفلاین cache-first</li>
+<li>‏<strong>localStorage</strong> برای داده سفرها + <strong>Cookies</strong> برای تنظیمات</li>
+<li>‏<strong>Service Worker</strong> — استراتژی آفلاین cache-first</li>
 <li><strong>۴۵ تست واحد</strong> با <code>node:test</code></li>
 </ul>
 <h2>شروع کار</h2>
