@@ -1,7 +1,0 @@
-# PWA: prevent caching of service worker
-/service-worker.js
-  Cache-Control: no-cache, no-store, must-revalidate
-
-# PWA: allow service worker scope
-/*
-  Service-Worker-Allowed: /
