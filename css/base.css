@@ -29,9 +29,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(180deg, rgb(255 241 220 / 75%), transparent 420px),
-    var(--color-bg);
+  background: var(--color-bg);
 }
 
 body[dir="ltr"] {
