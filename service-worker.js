@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-pwa-v2';
+const CACHE_NAME = 'dong-pwa-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -51,14 +51,16 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      caches.match('./index.html').then((cached) => cached || fetch(event.request))
+      caches.match('./index.html').then((cached) =>
+        cached || fetch(event.request, { redirect: 'follow' })
+      )
     );
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cached) =>
-      cached || fetch(event.request).then((response) => {
+      cached || fetch(event.request, { redirect: 'follow' }).then((response) => {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
