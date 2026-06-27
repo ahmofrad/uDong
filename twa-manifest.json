@@ -12,6 +12,10 @@
   "startUrl": "/",
   "appVersion": "1.0.0",
   "appVersionCode": 1,
+  "signingKey": {
+    "path": "",
+    "alias": ""
+  },
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://udong.ahmofrad.ir/manifest.webmanifest",
