@@ -7,6 +7,7 @@
   "navigationColor": "#2a2e37",
   "backgroundColor": "#2a2e37",
   "enableNotifications": false,
+  "iconUrl": "https://udong.ahmofrad.ir/assets/icons/icon-192.png",
   "startUrl": "/",
   "appVersion": "1.0.0",
   "appVersionCode": 1,
