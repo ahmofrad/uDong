@@ -40,7 +40,7 @@ jobs:
           echo "${{ secrets.KEYSTORE_BASE64 }}" | sed '/^---/d' | tr -d '\n\r' | base64 -d > signing.keystore
 
       - name: Install Bubblewrap CLI
-        run: npm install -g @pwabuilder/bubblewrap
+        run: npm install -g @bubblewrap/cli
 
       - name: Extract version info
         id: version
@@ -65,12 +65,12 @@ jobs:
           cat twa-manifest.json | jq '.appVersion, .appVersionCode'
 
       - name: Build signed APK + AAB with Bubblewrap
-        run: |
-          bubblewrap build \
-            --ksFile signing.keystore \
-            --ksPass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            --keyAlias "${{ secrets.KEY_ALIAS }}" \
-            --keyPass "${{ secrets.KEY_PASSWORD }}"
+        env:
+          BUBBLEWRAP_KEYSTORE_PATH: signing.keystore
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: bubblewrap build --universalApk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
