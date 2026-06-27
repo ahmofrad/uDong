@@ -3,3 +3,10 @@ node_modules/
 __pycache__/
 .DS_Store
 Thumbs.db
+
+# Android build
+twa/
+Android/
+*.keystore
+*.apk
+*.aab

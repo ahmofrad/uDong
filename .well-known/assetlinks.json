@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ir.ahmofrad.udong",
+    "sha256_cert_fingerprints": ["38:38:48:C5:F6:ED:DA:F5:C7:B4:42:A7:1F:2F:77:73:51:2B:C8:49:08:1E:95:56:3F:81:03:B1:A6:83:EB:93"]
+  }
+}]

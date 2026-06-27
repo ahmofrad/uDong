@@ -1,0 +1,96 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version name (e.g. 1.1.0)
+        required: true
+        default: 1.0.0
+      version_code:
+        description: Version code (integer)
+        required: true
+        default: '2'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Decode signing keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > signing.keystore
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @pwabuilder/bubblewrap
+
+      - name: Extract version info
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            VERSION_CODE="${VERSION//./}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            echo "version_code=${{ github.event.inputs.version_code }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Patch twa-manifest.json version
+        run: |
+          jq --arg v "${{ steps.version.outputs.version }}" \
+             '.appVersion = $v' twa-manifest.json > tmp.json && mv tmp.json twa-manifest.json
+          jq --argjson vc "${{ steps.version.outputs.version_code }}" \
+             '.appVersionCode = $vc' twa-manifest.json > tmp.json && mv tmp.json twa-manifest.json
+          echo "=== twa-manifest.json ==="
+          cat twa-manifest.json | jq '.appVersion, .appVersionCode'
+
+      - name: Build signed APK + AAB with Bubblewrap
+        run: |
+          bubblewrap build \
+            --ksFile signing.keystore \
+            --ksPass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            --keyAlias "${{ secrets.KEY_ALIAS }}" \
+            --keyPass "${{ secrets.KEY_PASSWORD }}"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: udong-${{ steps.version.outputs.version }}-apk
+          path: app-release-signed.apk
+          if-no-files-found: error
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: udong-${{ steps.version.outputs.version }}-aab
+          path: app-release-bundle.aab
+          if-no-files-found: error
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            app-release-signed.apk
+            app-release-bundle.aab
+          generate_release_notes: true
