@@ -28,6 +28,7 @@
   "alphaDependencies": {
     "enabled": false
   },
+  "splashScreenFadeOutDuration": 300,
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "orientation": "portrait",
