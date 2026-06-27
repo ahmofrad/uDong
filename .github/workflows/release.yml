@@ -83,18 +83,23 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: bubblewrap build --universalApk --signingKeyPath signing.keystore --signingKeyAlias ${{ secrets.KEY_ALIAS }}
 
+      - name: Rename build outputs
+        run: |
+          mv app-release-signed.apk udong-${{ steps.version.outputs.version }}.apk
+          mv app-release-bundle.aab udong-${{ steps.version.outputs.version }}.aab
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: udong-${{ steps.version.outputs.version }}-apk
-          path: app-release-signed.apk
+          path: udong-${{ steps.version.outputs.version }}.apk
           if-no-files-found: error
 
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
           name: udong-${{ steps.version.outputs.version }}-aab
-          path: app-release-bundle.aab
+          path: udong-${{ steps.version.outputs.version }}.aab
           if-no-files-found: error
 
       - name: Create Release
@@ -102,6 +107,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            app-release-signed.apk
-            app-release-bundle.aab
+            udong-${{ steps.version.outputs.version }}.apk
+            udong-${{ steps.version.outputs.version }}.aab
           generate_release_notes: true
