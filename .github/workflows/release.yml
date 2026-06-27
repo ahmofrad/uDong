@@ -65,7 +65,14 @@ jobs:
           cat twa-manifest.json | jq '.appVersion, .appVersionCode'
 
       - name: Configure Bubblewrap paths
-        run: bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+        run: |
+          mkdir -p ~/.bubblewrap
+          cat > ~/.bubblewrap/config.json << EOF
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
 
       - name: Build signed APK + AAB with Bubblewrap
         env:
