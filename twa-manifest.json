@@ -1,6 +1,7 @@
 {
-  "packageName": "ir.ahmofrad.udong",
+  "packageId": "ir.ahmofrad.udong",
   "host": "udong.ahmofrad.ir",
+  "name": "دنگ حساب سفر",
   "launcherName": "دنگ سفر",
   "display": "standalone",
   "themeColor": "#f59e0b",
