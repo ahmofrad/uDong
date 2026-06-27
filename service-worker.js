@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-pwa-v6';
+const CACHE_NAME = 'dong-pwa-v7';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -20,6 +20,8 @@ const STATIC_ASSETS = [
   './assets/icons/icon-192.svg',
   './assets/icons/icon-512.svg',
   './assets/icons/icon-maskable.svg',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png',
   './assets/fonts/vazirmatn-arabic.woff2',
   './assets/fonts/vazirmatn-latin.woff2',
   './assets/vendors/jalalidatepicker/jalalidatepicker.min.js',
