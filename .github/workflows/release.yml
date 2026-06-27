@@ -64,13 +64,14 @@ jobs:
           echo "=== twa-manifest.json ==="
           cat twa-manifest.json | jq '.appVersion, .appVersionCode'
 
+      - name: Configure Bubblewrap paths
+        run: bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+
       - name: Build signed APK + AAB with Bubblewrap
         env:
-          BUBBLEWRAP_KEYSTORE_PATH: signing.keystore
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          BUBBLEWRAP_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: echo "n" | bubblewrap build --universalApk
+        run: bubblewrap build --universalApk --signingKeyPath signing.keystore --signingKeyAlias ${{ secrets.KEY_ALIAS }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
