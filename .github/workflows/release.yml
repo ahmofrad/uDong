@@ -37,7 +37,7 @@ jobs:
 
       - name: Decode signing keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > signing.keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | sed '/^---/d' | tr -d '\n\r' | base64 -d > signing.keystore
 
       - name: Install Bubblewrap CLI
         run: npm install -g @pwabuilder/bubblewrap
