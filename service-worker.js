@@ -1,11 +1,11 @@
-const CACHE_NAME = 'dong-pwa-v7';
+const CACHE_NAME = 'dong-pwa-v8';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './css/variables.css?v=2',
-  './css/base.css?v=2',
-  './css/components.css?v=2',
+  './css/variables.css?v=3',
+  './css/base.css?v=3',
+  './css/components.css?v=3',
   './js/app.js',
   './js/state/schema.js',
   './js/state/store.js',

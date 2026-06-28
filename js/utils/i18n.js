@@ -91,7 +91,8 @@ export const messages = {
     unarchive: 'خروج از بایگانی',
     totalByCategory: 'هزینه به تفکیک دسته',
     selectAll: 'انتخاب همه',
-    paidBy: 'پرداخت‌کننده'
+    paidBy: 'پرداخت‌کننده',
+    madeBy: 'ساخته شده توسط علیرضا هوشمند مفرد'
   },
   en: {
     appName: 'Dong Trip Splitter',
@@ -185,7 +186,8 @@ export const messages = {
     unarchive: 'Unarchive',
     totalByCategory: 'Total by category',
     selectAll: 'Select all',
-    paidBy: 'Paid by'
+    paidBy: 'Paid by',
+    madeBy: 'Made by Alireza Hooshmand Mofrad'
   }
 };
 

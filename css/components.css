@@ -741,3 +741,35 @@ main {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4) calc(var(--space-6) + 64px);
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.footer-github {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-muted);
+  transition: color 0.15s ease;
+}
+
+.footer-github:hover {
+  color: var(--color-primary);
+}
+
+.footer-github .icon {
+  width: 20px;
+  height: 20px;
+}
+
+@media (min-width: 601px) {
+  .app-footer {
+    padding-bottom: var(--space-6);
+  }
+}

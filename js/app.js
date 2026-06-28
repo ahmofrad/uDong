@@ -39,6 +39,7 @@ function render() {
     <main>
       ${store.trip ? renderCurrentView() : (store.view === 'newTrip' ? renderTripSetup() : renderTripList())}
     </main>
+    ${renderFooter()}
     <div id="toast" class="toast" hidden></div>
   `;
 
@@ -80,6 +81,17 @@ function renderTabs() {
         </button>
       `).join('')}
     </nav>
+  `;
+}
+
+function renderFooter() {
+  return `
+    <footer class="app-footer">
+      <span>${t(store.language, 'madeBy')}</span>
+      <a class="footer-github" href="https://github.com/ahmofrad/uDong" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        ${icon('github')}
+      </a>
+    </footer>
   `;
 }
 
@@ -1624,7 +1636,7 @@ function renderEmpty(key) {
 }
 
 function icon(name) {
-  const map = { food: 'food', lodging: 'lodging', car: 'car', bag: 'bag', fuel: 'fuel', ticket: 'ticket', other: 'other', route: 'route', wallet: 'wallet', users: 'users', trash: 'trash', plus: 'plus', edit: 'edit', 'arrow-left': 'arrow-left', print: 'print', search: 'search', dashboard: 'home', expenses: 'list', settlement: 'wallet', settings: 'settings', archive: 'archive' };
+  const map = { food: 'food', lodging: 'lodging', car: 'car', bag: 'bag', fuel: 'fuel', ticket: 'ticket', other: 'other', route: 'route', wallet: 'wallet', users: 'users', trash: 'trash', plus: 'plus', edit: 'edit', 'arrow-left': 'arrow-left', print: 'print', search: 'search', dashboard: 'home', expenses: 'list', settlement: 'wallet', settings: 'settings', archive: 'archive', github: 'github' };
   return `<svg class="icon" aria-hidden="true"><use href="#icon-${map[name] || 'wallet'}"></use></svg>`;
 }
 
