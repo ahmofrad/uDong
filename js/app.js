@@ -200,6 +200,13 @@ function renderTripList() {
         </label>
       ` : ''}
       ${state.lastError ? `<p class="error" role="alert">${state.lastError}</p>` : ''}
+      <div class="inline-actions" style="margin-block:var(--space-3)">
+        <button class="button secondary" id="backup-all-trips" ${store.tripIndex.length === 0 ? 'disabled' : ''}>${icon('download')}${t(store.language, 'backupAllTrips')}</button>
+        <label class="button secondary">
+          ${icon('upload')}${t(store.language, 'restoreTrips')}
+          <input id="restore-trips" type="file" accept="application/json" hidden>
+        </label>
+      </div>
       ${filtered.length ? `
         <div class="trip-card-grid">
           ${filtered.map((entry) => {
@@ -739,10 +746,10 @@ function renderSettingsView() {
         </label>
       </div>
       <div class="inline-actions" style="margin-block-start:var(--space-4)">
-        <button class="button secondary" id="export-json">${t(store.language, 'exportJson')}</button>
+        <button class="button secondary" id="backup-trip">${icon('download')}${t(store.language, 'backupThisTrip')}</button>
         <label class="button secondary">
-          ${t(store.language, 'importJson')}
-          <input id="import-json" type="file" accept="application/json" hidden>
+          ${icon('upload')}${t(store.language, 'restoreThisTrip')}
+          <input id="restore-trip" type="file" accept="application/json" hidden>
         </label>
       </div>
       <p class="muted">${escapeHtml(trip.name)} · ${formatDate(trip.tripDate, trip.dateCalendar, store.language)} · ${t(store.language, trip.currency)}</p>
@@ -915,6 +922,8 @@ function bindTripListEvents() {
     state.showArchived = e.target.checked;
     render();
   });
+  app.querySelector('#backup-all-trips')?.addEventListener('click', exportAllTripsBackup);
+  app.querySelector('#restore-trips')?.addEventListener('change', restoreTripsBackup);
 }
 
 function bindAppEvents() {
@@ -1228,8 +1237,8 @@ function bindAppEvents() {
     render();
   });
 
-  app.querySelector('#export-json')?.addEventListener('click', exportJson);
-  app.querySelector('#import-json')?.addEventListener('change', importJson);
+  app.querySelector('#backup-trip')?.addEventListener('click', exportTripBackup);
+  app.querySelector('#restore-trip')?.addEventListener('change', restoreTripBackup);
 
   bindSettingsEvents();
 }
@@ -1514,7 +1523,7 @@ function syncChargeDraft() {
   }));
 }
 
-function exportJson() {
+function exportTripBackup() {
   const blob = new Blob([JSON.stringify(store.trip, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -1524,13 +1533,51 @@ function exportJson() {
   URL.revokeObjectURL(url);
 }
 
-function importJson(event) {
+function restoreTripBackup(event) {
   const file = event.target.files?.[0];
   if (!file) return;
   file.text().then((text) => {
     importTrip(JSON.parse(text));
-    showToast(store.language === 'fa' ? 'سفر وارد شد.' : 'Trip imported.');
+    showToast(store.language === 'fa' ? 'سفر بازیابی شد.' : 'Trip restored.');
   }).catch(() => showToast(store.language === 'fa' ? 'فایل معتبر نیست.' : 'Invalid file.'));
+  event.target.value = '';
+}
+
+function exportAllTripsBackup() {
+  const trips = store.tripIndex.map((entry) => loadTripData(entry.id)).filter(Boolean);
+  const blob = new Blob([JSON.stringify(trips, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'dong-all-trips-backup.json';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function restoreTripsBackup(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  file.text().then((text) => {
+    const data = JSON.parse(text);
+    const trips = Array.isArray(data) ? data : [data];
+    let count = 0;
+    for (const t of trips) {
+      if (t && t.id && t.name) {
+        saveTrip(t);
+        count++;
+      }
+    }
+    store.tripIndex = loadTripIndex();
+    render();
+    showToast(
+      store.language === 'fa'
+        ? `${count} سفر بازیابی شد.`
+        : `${count} trip(s) restored.`
+    );
+  }).catch(() => {
+    showToast(store.language === 'fa' ? 'فایل معتبر نیست.' : 'Invalid file.');
+  });
+  event.target.value = '';
 }
 
 function loadTripData(tripId) {
@@ -1636,7 +1683,7 @@ function renderEmpty(key) {
 }
 
 function icon(name) {
-  const map = { food: 'food', lodging: 'lodging', car: 'car', bag: 'bag', fuel: 'fuel', ticket: 'ticket', other: 'other', route: 'route', wallet: 'wallet', users: 'users', trash: 'trash', plus: 'plus', edit: 'edit', 'arrow-left': 'arrow-left', print: 'print', search: 'search', dashboard: 'home', expenses: 'list', settlement: 'wallet', settings: 'settings', archive: 'archive', github: 'github' };
+  const map = { food: 'food', lodging: 'lodging', car: 'car', bag: 'bag', fuel: 'fuel', ticket: 'ticket', other: 'other', route: 'route', wallet: 'wallet', users: 'users', trash: 'trash', plus: 'plus', edit: 'edit', 'arrow-left': 'arrow-left', print: 'print', search: 'search', dashboard: 'home', expenses: 'list', settlement: 'wallet', settings: 'settings', archive: 'archive', github: 'github', download: 'download', upload: 'upload' };
   return `<svg class="icon" aria-hidden="true"><use href="#icon-${map[name] || 'wallet'}"></use></svg>`;
 }
 

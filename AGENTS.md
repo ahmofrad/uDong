@@ -185,18 +185,24 @@ Notes:
   ~1 year expiry.
 - `schemaVersion` on every stored trip + `migrateTrip()` in `schema.js`
   handles future format changes.
-- **JSON export / import** (download/upload a file) — built into the settings
-  view as the only backup mechanism.
+- **Backup / restore** — per-trip backup/restore in the settings view
+  (`backup-trip` / `restore-trip`), plus global backup/restore on the trip list
+  page (`backup-all-trips` / `restore-trips`). Global restore accepts a JSON
+  file containing a single trip or an array of trips, using `saveTrip()` directly
+  without changing the active trip. Backup button is disabled when no trips exist.
 
 ---
 
 ## 6. Core User Flows
 
-1. **Trip list / management** (first run shows creation wizard):
-   - If no trips exist, user is taken directly to trip creation.
-   - If trips exist, a trip list is shown with cards for each trip.
+1. **Trip list / management** (landing page when no trip is open):
+   - Always shows the trip list, even when no trips exist (empty state with
+     "Create your first trip" CTA).
    - Each card: trip name, date, currency, family count, expense count.
    - Actions: open trip, archive/unarchive, delete, edit settings.
+   - Global backup/restore buttons at the top: "Backup all trips" (disabled
+     when no trips exist) and "Restore trips" (file upload, accepts single
+     trip or array of trips).
    - `activeTripId` cookie persists which trip was open across refreshes.
 
 2. **Trip setup wizard** (creation or edit):
@@ -285,7 +291,8 @@ After all expenses:
   via CSS variables. Each Family gets an auto-assigned, distinct color from
   a fixed 10-color set, reused everywhere (chips, settlement rows).
 - **Category icons**: 7 SVG icon categories selected per expense, shown
-  consistently in lists, cards, and summary widgets.
+  consistently in lists, cards, and summary widgets. Additional icons:
+  `download`, `upload` for backup/restore buttons, `github` for footer link.
 - **Responsive**: mobile-first single column; tablet/desktop gets multi-column
   card layout. Bottom fixed tab bar on mobile (≤600px), horizontal inline
   on desktop.
@@ -305,7 +312,7 @@ After all expenses:
   `start_url: "."`, `display: "standalone"`, theme/background colors,
   SVG icon set (192×192, 512×512, maskable variants).
 - `service-worker.js`: cache-first for 20 static assets (HTML/CSS/JS/
-  fonts/icons/vendor files). Versioned cache name (`dong-pwa-v1`) with
+  fonts/icons/vendor files).   Versioned cache name (`dong-pwa-v9`) with
   `activate` handler that purges old caches. Navigation requests served
   from cached `index.html`. Update toast on new SW version.
 - Service worker registered from `app.js` with skip-waiting message support.
@@ -361,8 +368,8 @@ After all expenses:
 
 ## 13. Suggested Build Order (followed during development)
 
-1. Static shell + PWA scaffolding (manifest, service worker, RTL base CSS,
-   locally bundled fonts/icons).
+1.    Static shell + PWA scaffolding (manifest, service worker, RTL base CSS,
+   locally bundled fonts/icons, inline SVG icon sprite).
 2. State store + storage adapters (localStorage + cookie) + versioned schema,
    including calendar, currency, language preference, and optional date fields.
 3. Trip setup wizard (trip settings/family/member CRUD).

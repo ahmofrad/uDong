@@ -25,10 +25,10 @@ export function initStore() {
       store.view = 'dashboard';
     } else {
       preferences.activeTripId = '';
-      store.view = store.tripIndex.length ? 'tripList' : 'newTrip';
+      store.view = 'tripList';
     }
   } else {
-    store.view = store.tripIndex.length ? 'tripList' : 'newTrip';
+    store.view = 'tripList';
   }
 }
 
@@ -73,7 +73,7 @@ export function importTrip(trip) {
 
 export function closeTrip() {
   store.trip = null;
-  store.view = store.tripIndex.length ? 'tripList' : 'newTrip';
+  store.view = 'tripList';
   preferences.activeTripId = '';
   emit();
 }
@@ -93,7 +93,7 @@ export function deleteStoredTrip(tripId) {
   store.tripIndex = loadTripIndex();
   if (store.trip?.id === tripId) {
     store.trip = null;
-    store.view = store.tripIndex.length ? 'tripList' : 'newTrip';
+    store.view = 'tripList';
     preferences.activeTripId = '';
   }
   emit();
