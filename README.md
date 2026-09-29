@@ -28,8 +28,8 @@
 - **Self-hosted Vazirmatn font** — fully offline, no CDN dependency
 - **Inline SVG icon sprite** — bundled in `index.html`, no runtime icons
 - **localStorage** for trip data + **Cookies** for preferences
-- **Service Worker** — cache-first offline strategy
-- **45 unit tests** via `node:test`
+- **Service Worker** — cache-first offline strategy (same-origin runtime caching)
+- **59 unit tests** via `node:test`
 
 ## Getting Started
 
@@ -71,10 +71,19 @@ Tests use Node's built-in `node:test` runner — no external test framework need
 │   ├── base.css                  # Reset, typography, RTL
 │   └── components.css            # All component styles
 ├── js/
-│   ├── app.js                    # Bootstrap + router + rendering + events
+│   ├── app.js                    # Bootstrap + router + shared state/helpers + view wiring
 │   ├── state/
 │   │   ├── store.js              # In-memory state + persistence
-│   │   └── schema.js             # Data model + migrations
+│   │   └── schema.js             # Data model + migrations + sanitizeTrip()
+│   ├── views/                    # One module per view (shared ctx object)
+│   │   ├── viewContext.js        # Shared context builder
+│   │   ├── tripList.js           # Trip list + global backup/restore
+│   │   ├── tripSetup.js          # Trip creation wizard
+│   │   ├── dashboard.js          # Dashboard widgets
+│   │   ├── expenses.js           # Expense form/list + unequal split
+│   │   ├── expenseCard.js        # Shared expense card renderer
+│   │   ├── settlement.js         # Settlement + print + settled checkboxes
+│   │   └── settings.js           # Trip settings + per-trip backup/restore
 │   ├── storage/
 │   │   ├── localStorageAdapter.js
 │   │   └── cookieAdapter.js
@@ -91,7 +100,8 @@ Tests use Node's built-in `node:test` runner — no external test framework need
 └── tests/
     ├── settlementEngine.test.js
     ├── storage.test.js
-    └── utils.test.js
+    ├── utils.test.js
+    └── schema.test.js
 ```
 
 ## Data Model
@@ -139,8 +149,8 @@ MIT
 <li><strong>فونت وزیرمتن</strong> — میزبانی شده در پروژه، بدون نیاز به CDN</li>
 <li><strong>آیکون‌های SVG درون‌ساختی</strong> — bundled در index.html</li>
 <li>‏<strong>localStorage</strong> برای داده سفرها + <strong>Cookies</strong> برای تنظیمات</li>
-<li>‏<strong>Service Worker</strong> — استراتژی آفلاین cache-first</li>
-<li><strong>۴۵ تست واحد</strong> با <code>node:test</code></li>
+<li>‏<strong>Service Worker</strong> — استراتژی آفلاین cache-first (کش فقط برای same-origin)</li>
+<li><strong>۵۹ تست واحد</strong> با <code>node:test</code></li>
 </ul>
 <h2>شروع کار</h2>
 <p>برنامه یک سایت استاتیک است و نیازی به build ندارد:</p>
@@ -164,10 +174,19 @@ npx serve .
 │   ├── base.css                  # ریست، تایپوگرافی، RTL
 │   └── components.css            # استایل کامپوننت‌ها
 ├── js/
-│   ├── app.js                    # بوت‌استرپ + رندر + رویدادها
+│   ├── app.js                    # بوت‌استرپ + روتر + state/توابع مشترک + اتصال viewها
 │   ├── state/
 │   │   ├── store.js              # state درون حافظه + ذخیره‌سازی
-│   │   └── schema.js             # مدل داده + مهاجرت
+│   │   └── schema.js             # مدل داده + مهاجرت + sanitizeTrip()
+│   ├── views/                    # یک ماژول برای هر view (با ctx مشترک)
+│   │   ├── viewContext.js        # سازنده context مشترک
+│   │   ├── tripList.js           # لیست سفرها + پشتیبان/بازیابی کلی
+│   │   ├── tripSetup.js          # جادوگر ساخت سفر
+│   │   ├── dashboard.js          # ویجت‌های داشبورد
+│   │   ├── expenses.js           # فرم/لیست هزینه + سهم‌بندی نابرابر
+│   │   ├── expenseCard.js        # رندر کارت هزینه (مشترک)
+│   │   ├── settlement.js         # تسویه + چاپ + چک‌باکس تسویه‌شده
+│   │   └── settings.js           # تنظیمات سفر + پشتیبان/بازیابی همین سفر
 │   ├── storage/
 │   │   ├── localStorageAdapter.js
 │   │   └── cookieAdapter.js
@@ -184,7 +203,8 @@ npx serve .
 └── tests/
     ├── settlementEngine.test.js
     ├── storage.test.js
-    └── utils.test.js
+    ├── utils.test.js
+    └── schema.test.js
 </code></pre>
 <h2>مدل داده</h2>
 <ul>

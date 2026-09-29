@@ -81,10 +81,19 @@ All data lives in the browser (localStorage + Cookies).
 │   ├── base.css                  // reset, RTL, typography, Vazirmatn @font-face
 │   └── components.css            // all component, layout, animation styles
 ├── /js
-│   ├── app.js                    // bootstrap + router + all rendering + event binding
+│   ├── app.js                    // bootstrap + router + shared state/helpers + view wiring
 │   ├── state/
 │   │   ├── store.js              // in-memory state + persistence calls
-│   │   └── schema.js             // data model + schemaVersion + migrations
+│   │   └── schema.js             // data model + schemaVersion + migrations + sanitizeTrip()
+│   ├── /views                    // one module per view; each receives a shared ctx object
+│   │   ├── viewContext.js        // builds the shared ctx (state, render, helpers)
+│   │   ├── tripList.js           // trip list + global backup/restore
+│   │   ├── tripSetup.js          // trip creation wizard
+│   │   ├── dashboard.js          // dashboard summary widgets
+│   │   ├── expenses.js           // expense add/edit form + list + unequal-split logic
+│   │   ├── expenseCard.js        // shared expense card renderer
+│   │   ├── settlement.js         // settlement view + print + settled checkboxes
+│   │   └── settings.js           // trip settings + per-trip backup/restore
 │   ├── storage/
 │   │   ├── localStorageAdapter.js
 │   │   └── cookieAdapter.js
@@ -105,9 +114,12 @@ All data lives in the browser (localStorage + Cookies).
 └── /agents/                      // opencode agent skills (internal)
 ```
 
-Note: All rendering logic lives in `app.js`. There are no separate
-`features/` or `components/` directories — the app is a single-page
-single-module architecture.
+Note: `app.js` is the slim orchestrator — it owns the shared draft `state`,
+the top-level `render()`, and all small helpers, then delegates to one module
+per view under `js/views/`. Each view module exports `render…()` + `bind…()`
+and receives a shared `ctx` object (`{ app, state, render, ...helpers }`) so
+no view imports `app.js` (avoiding circular dependencies). There are no
+`features/` or `components/` directories beyond that.
 
 ---
 
@@ -188,8 +200,11 @@ Notes:
 - **Backup / restore** — per-trip backup/restore in the settings view
   (`backup-trip` / `restore-trip`), plus global backup/restore on the trip list
   page (`backup-all-trips` / `restore-trips`). Global restore accepts a JSON
-  file containing a single trip or an array of trips, using `saveTrip()` directly
-  without changing the active trip. Backup button is disabled when no trips exist.
+  file containing a single trip or an array of trips. **Every** restored trip is
+  passed through `sanitizeTrip()` (in `schema.js`), which deep-validates and
+  normalizes the shape, drops malformed families/members/charges, and migrates —
+  so a bad backup can never crash the dashboard. Restore never changes the
+  active trip. Backup button is disabled when no trips exist.
 
 ---
 
@@ -254,11 +269,14 @@ For each valid `Expense`:
    proportionally across participants; otherwise use equal split.
 6. For each participant: `memberBalance[id] -= share`
 7. For each charge: `memberBalance[charge.payerMemberId] += charge.amount`
+8. Credit `taxAmount` back to the payer(s) in proportion to what each paid
+   (via `distributeTaxCredit()`), so the ledger stays zero-sum and whoever
+   fronted the tax is reimbursed through the settlement.
 
 After all expenses:
-8. Roll up to family level: `familyBalance[familyId] = Σ memberBalance[m]`
+9. Roll up to family level: `familyBalance[familyId] = Σ memberBalance[m]`
    for every member `m` in that family.
-9. **Greedy debt simplification** over `familyBalance`:
+10. **Greedy debt simplification** over `familyBalance`:
    - Split into creditors (`balance > 0`) and debtors (`balance < 0`).
    - Sort both by `|balance|` descending.
    - Repeat: take the largest debtor and largest creditor,
@@ -266,12 +284,17 @@ After all expenses:
      record `{from: debtor, to: creditor, amount}`,
      reduce both balances by `amount`, drop any side that reaches ~0.
    - Epsilon of 1 minor unit to absorb floating point noise.
-10. Output: `[{from: familyId, to: familyId, amount}, ...]`.
+11. Output: `[{from: familyId, to: familyId, amount}, ...]`. Transfer keys for
+   the "settled" checkboxes are `${from}_${to}_${amount}_${index}` — the index
+   disambiguates two transfers that share from/to/amount.
 
 ### Edge cases handled
 - Payer who is not a participant → fully supported (credit only, no debit).
+- Tax is credited back to whoever fronted the charges (proportional to each
+  charge), keeping member and family balances zero-sum; a single payer with
+  multiple charges still receives their full proportional share.
 - Rounding: integer minor units throughout; remainder pushed onto largest
-  share via `splitIntegerAmount()`.
+  share via `splitIntegerAmount()` (and onto the largest charge for tax credit).
 - Trip with only one family → zero transfers ("نیازی به تسویه نیست").
 - Deleting a member/family referenced by charges/participants → blocked
   with a warning toast via `isMemberReferenced()`/`isFamilyReferenced()`.
@@ -311,10 +334,12 @@ After all expenses:
 - `manifest.webmanifest`: name ("دنگ حساب سفر"), short_name ("دنگ سفر"),
   `start_url: "."`, `display: "standalone"`, theme/background colors,
   SVG icon set (192×192, 512×512, maskable variants).
-- `service-worker.js`: cache-first for 20 static assets (HTML/CSS/JS/
-  fonts/icons/vendor files).   Versioned cache name (`dong-pwa-v9`) with
-  `activate` handler that purges old caches. Navigation requests served
-  from cached `index.html`. Update toast on new SW version.
+- `service-worker.js`: cache-first for the static asset list (HTML/CSS/JS/
+  fonts/icons/vendor files). Versioned cache name (`dong-pwa-v10`) with
+  `activate` handler that purges old caches. Navigation requests served from
+  cached `index.html`. Update toast on new SW version. Runtime caching is
+  **same-origin only** and stores only successful `basic` (status 200)
+  responses — cross-origin/opaque responses are passed through, never cached.
 - Service worker registered from `app.js` with skip-waiting message support.
 - No network calls required for core functionality — no analytics, no
   tracking, all data stays on-device.
@@ -335,11 +360,12 @@ After all expenses:
 
 ---
 
-## 11. Testing Notes (45 unit tests, `npm test`)
+## 11. Testing Notes (59 unit tests, `npm test`)
 
-- **`tests/settlementEngine.test.js`** (7 tests): equal split, percent tax,
-  fixed tax, payer-not-participant, single-family trip, multi-family
-  rounding, greedy-settle transfer count.
+- **`tests/settlementEngine.test.js`** (9 tests): equal split, percent tax,
+  fixed tax, multi-payer tax credit, zero-sum conservation across mixed
+  taxed/untaxed expenses, payer-not-participant, single-family trip,
+  multi-family rounding, greedy-settle transfer count.
 - **`tests/storage.test.js`** (12 tests): localStorage adapter (save/load/
   delete/corrupt), cookie adapter (get/set/overwrite/preferences).
 - **`tests/utils.test.js`** (26 tests): currency (`toMinorUnit`,
@@ -347,6 +373,10 @@ After all expenses:
   `formatDate`, `jalaliToGregorian`, `parseDate`, `dateInputValue`),
   validators (`validateTrip`, `isExpenseValid`, `isTaxValid`),
   i18n (key parity, fallback, direction).
+- **`tests/schema.test.js`** (12 tests): `sanitizeTrip()` restore hardening —
+  rejects non-objects/missing id+name, coerces arrays, drops malformed
+  families/members/charges, filters dangling charge/participant references,
+  clamps out-of-range tax, validates colors.
 - All tests use `node:test` (no external test framework) and mocked
   storage/cookie where applicable.
 
@@ -356,7 +386,9 @@ After all expenses:
 
 - Multi-device sync, accounts, login.
 - Multiple currencies inside the same trip and FX conversion.
-- Crediting the tax portion separately to whoever fronted it.
+- Crediting tax to whoever fronted it: **implemented** — `distributeTaxCredit()`
+  reimburses tax proportionally across the charge payers so the ledger stays
+  zero-sum (see §7 step 8).
 - Unequal/custom split weights per participant: **implemented** (see
   `shareWeights` on Expense, `recalculateShares()` in settlement engine,
   lock button + share inputs in UI).

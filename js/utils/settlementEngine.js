@@ -43,8 +43,15 @@ export function calculateSettlement(trip, epsilon = 1) {
       memberBalance[charge.payerMemberId] += Math.round(charge.amount);
     }
 
+    // Credit the tax back to whoever fronted the charges, proportional to
+    // how much each payer paid, so the ledger stays zero-sum and the tax is
+    // actually reimbursed through the settlement.
     if (taxAmount > 0) {
-      // v1 deliberately debits tax into shares without crediting it to a payer.
+      const taxCredits = distributeTaxCredit(taxAmount, expense.charges);
+      for (const [payerId, credit] of taxCredits) {
+        if (memberBalance[payerId] === undefined) continue;
+        memberBalance[payerId] += credit;
+      }
     }
   }
 
@@ -127,6 +134,32 @@ export function recalculateShares({ participantIds, lockedIds = [], fixedAmounts
     item.weight = Math.max(1, Math.round(item.amount / equalShare * 100));
   }
   return result;
+}
+
+// Split a tax amount across the charges that fronted it, in proportion to
+// each charge's amount. Payers with multiple charges accumulate one credit.
+// Remainder goes to the largest charge so the credits sum exactly to taxAmount.
+function distributeTaxCredit(taxAmount, charges = []) {
+  const valid = charges.filter((c) => Math.round(c.amount) > 0);
+  const total = valid.reduce((s, c) => s + Math.round(c.amount), 0);
+  const credits = new Map();
+  if (total <= 0) return credits;
+
+  let allocated = 0;
+  let largest = null;
+  for (const charge of valid) {
+    const amount = Math.round(charge.amount);
+    const exact = taxAmount * amount / total;
+    const credit = Math.trunc(exact);
+    allocated += credit;
+    credits.set(charge.payerMemberId, (credits.get(charge.payerMemberId) || 0) + credit);
+    if (!largest || amount > largest.amount) largest = { payerMemberId: charge.payerMemberId, amount };
+  }
+  let remainder = taxAmount - allocated;
+  if (largest) {
+    credits.set(largest.payerMemberId, (credits.get(largest.payerMemberId) || 0) + remainder);
+  }
+  return credits;
 }
 
 function splitIntegerAmount(total, ids) {

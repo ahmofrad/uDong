@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dong-pwa-v9';
+const CACHE_NAME = 'dong-pwa-v10';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,14 @@ const STATIC_ASSETS = [
   './js/utils/i18n.js',
   './js/utils/settlementEngine.js',
   './js/utils/validators.js',
+  './js/views/viewContext.js',
+  './js/views/tripList.js',
+  './js/views/tripSetup.js',
+  './js/views/dashboard.js',
+  './js/views/expenses.js',
+  './js/views/expenseCard.js',
+  './js/views/settlement.js',
+  './js/views/settings.js',
   './assets/icons/icon.svg',
   './assets/icons/icon-192.svg',
   './assets/icons/icon-512.svg',
@@ -58,13 +66,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Only cache same-origin requests, and only successful basic responses.
+  // Cross-origin and opaque responses are passed through without caching.
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+
   event.respondWith(
-    caches.match(event.request).then((cached) =>
-      cached || fetch(event.request).then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (isSameOrigin && response && response.status === 200 && response.type === 'basic') {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        }
         return response;
-      })
-    )
+      });
+    })
   );
 });

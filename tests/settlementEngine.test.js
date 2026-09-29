@@ -33,7 +33,7 @@ test('splits a simple expense and settles family to family', () => {
   assert.deepEqual(result.transfers, [{ from: 'fam_b', to: 'fam_a', amount: 500 }]);
 });
 
-test('supports percent tax by debiting shares without payer credit', () => {
+test('percent tax is credited back to the payer so the ledger stays zero-sum', () => {
   const item = expense({
     participants: ['a1', 'b1'],
     charges: [{ amount: 1000, payerMemberId: 'a1' }],
@@ -46,12 +46,13 @@ test('supports percent tax by debiting shares without payer credit', () => {
   });
 
   const result = calculateSettlement(trip([item]));
-  assert.equal(result.memberBalance.a1, 450);
-  assert.equal(result.memberBalance.b1, -550);
-  assert.deepEqual(result.transfers, [{ from: 'fam_b', to: 'fam_a', amount: 450 }]);
+  assert.equal(result.memberBalance.a1, 550);  // 1000 paid + 100 tax - 550 share
+  assert.equal(result.memberBalance.b1, -550); // -550 share
+  assert.equal(result.memberBalance.a1 + result.memberBalance.b1, 0);
+  assert.deepEqual(result.transfers, [{ from: 'fam_b', to: 'fam_a', amount: 550 }]);
 });
 
-test('supports fixed tax', () => {
+test('fixed tax is credited back to the payer', () => {
   const result = calculateSettlement(trip([
     expense({
       participants: ['a1', 'b1'],
@@ -60,8 +61,52 @@ test('supports fixed tax', () => {
     })
   ]));
 
-  assert.equal(result.memberBalance.a1, 400);
+  assert.equal(result.memberBalance.a1, 600);  // 1000 + 200 - 600
   assert.equal(result.memberBalance.b1, -600);
+  assert.equal(result.memberBalance.a1 + result.memberBalance.b1, 0);
+});
+
+test('tax credit is split proportionally across multiple payers', () => {
+  // charges 600 (a1) + 400 (b1) = 1000; 10% tax = 100 -> 60 to a1, 40 to b1
+  const result = calculateSettlement(trip([
+    expense({
+      participants: ['a1', 'b1'],
+      charges: [
+        { amount: 600, payerMemberId: 'a1' },
+        { amount: 400, payerMemberId: 'b1' }
+      ],
+      tax: { type: 'percent', value: 10 }
+    })
+  ]));
+
+  // shares: 550 each. a1: +600 +60 -550 = 110 ; b1: +400 +40 -550 = -110
+  assert.equal(result.memberBalance.a1, 110);
+  assert.equal(result.memberBalance.b1, -110);
+  assert.equal(result.memberBalance.a1 + result.memberBalance.b1, 0);
+});
+
+test('member balances always sum to zero across taxed and untaxed expenses', () => {
+  const result = calculateSettlement(trip([
+    expense({
+      participants: ['a1', 'b1'],
+      charges: [{ amount: 1000, payerMemberId: 'a1' }],
+      tax: { type: 'percent', value: 10 }
+    }),
+    expense({
+      participants: ['a1', 'b1'],
+      charges: [{ amount: 500, payerMemberId: 'b1' }]
+    }),
+    expense({
+      participants: ['a1', 'b1'],
+      charges: [{ amount: 700, payerMemberId: 'b1' }],
+      tax: { type: 'fixed', value: 70 }
+    })
+  ]));
+
+  const total = Object.values(result.memberBalance).reduce((a, b) => a + b, 0);
+  assert.equal(total, 0);
+  const familyTotal = Object.values(result.familyBalance).reduce((a, b) => a + b, 0);
+  assert.equal(familyTotal, 0);
 });
 
 test('payer does not need to be a participant', () => {
